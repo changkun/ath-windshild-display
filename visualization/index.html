@@ -123,6 +123,14 @@
             
         function setDangerLevel(dangerLevel,fadeSpeed){
             
+            //stop "blinking" in case of dangerlevel > 5
+            if (this.dangerLevel < 6){
+                console.log("timer id: " + timer);
+                clearInterval(timer);
+                timer = undefined;
+                console.log("changeAlert: stop blinking");
+            }
+            
         
             //set fade effect dependent on danger level
             if (dangerLevel == 0){
@@ -152,6 +160,12 @@
             }else if (dangerLevel == 6){
                 
                 $("#container_ws").animate({'background-color': "#FF0000"}, fadeSpeed);
+                
+                
+                if (timer == undefined)
+                {  
+                    blinkAlert($("#warning_sign"));
+                }
                 
             }else{
                 //TODO
