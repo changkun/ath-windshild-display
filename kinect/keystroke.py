@@ -3,7 +3,14 @@ from pykeyboard import PyKeyboard
 KK = PyKeyboard()
 ACTIONS = {
     'increase': ['Control', 'Alternate', 'A'],
-    'decrease': ['Control', 'Alternate', 'Y']
+    'decrease': ['Control', 'Alternate', 'Y'],
+    'level0': ['Control', 'Alternate', '0'],
+    'level1': ['Control', 'Alternate', '1'],
+    'level2': ['Control', 'Alternate', '2'],
+    'level3': ['Control', 'Alternate', '3'],
+    'level4': ['Control', 'Alternate', '4'],
+    'level5': ['Control', 'Alternate', '5'],
+    'level6': ['Control', 'Alternate', '6']
 }
 
 

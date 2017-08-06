@@ -2,8 +2,12 @@
 import freenect
 import cv2
 import numpy as np
+import math
 import time
 import keystroke
+
+
+empirical_value = 100
 
 
 def get_depth():
@@ -12,20 +16,31 @@ def get_depth():
     return array
 
 
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+    valueScaled = float(value - leftMin) / float(leftSpan)
+    return rightMin + (valueScaled * rightSpan)
+
+
 if __name__ == "__main__":
+
     # calculate initial environment brightness
-    step = 10
+    step = 20
     init_bright = 0
     depth = get_depth()
     time.sleep(5)      # five sec for preparation
+    depth = get_depth()
     for x in range(0, depth.shape[0], step):
         for y in range(0, depth.shape[1], step):
-            init_bright += depth[x][y] / 255.0
+            init_bright += translate(depth[x][y], 0, 255, 150, -150)
 
     print('init_bright: ', init_bright)
 
     last_level = 0
+    count = 0
     while True:
+        # calculate global brightness
         global_bright = 0
         depth = get_depth()
         brightness_img = np.zeros(depth.shape, np.uint8)
@@ -34,27 +49,40 @@ if __name__ == "__main__":
         for x in range(0, depth.shape[0], step):
             for y in range(0, depth.shape[1], step):
                 bright = depth[x][y]
-                global_bright += bright / 255.0
+                bright = translate(bright, 0, 255, 150, -150)
+                global_bright += bright
+                # global_bright += bright / 255.0        # normalization
                 cv2.rectangle(brightness_img, (y, x),
                               (y + step / 2, x + step / 2), float(bright), -1)
-        global_bright -= init_bright
-        # print('global_bright:', global_bright)
-        cv2.putText(brightness_img, 'global_bright: ' + str(global_bright),
-                    (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
+        # global_bright -= init_bright
+
+        if global_bright < 0:
+            global_bright *= -1
 
         cv2.imshow('brightness image', brightness_img)
+        cv2.imshow('depth_image', get_depth())
+        cv2.moveWindow('depth_image', 640, 0)
 
-        current_level = int(global_bright / 100)
+        current_level = int(global_bright / empirical_value)
         print(current_level, last_level, current_level - last_level)
 
-        if current_level - last_level == 1:
-            keystroke.press_keys('increase')
-            print('increase')
-        elif current_level - last_level == -1:
-            keystroke.press_keys('decrease')
-            print('decrease')
+        # print(current_level, last_level, str(int(current_level / 5)))
+
+        if count == 2:
+            keystroke.press_keys(
+                'level' + str(int(translate(current_level, 300, 1000, 0, 5))))
+            # if current_level - last_level == 1:
+            #     keystroke.press_keys('increase')
+            #     print('increase')
+            # elif current_level - last_level == -1:
+            #     keystroke.press_keys('decrease')
+            #     print('decrease')
+            # else:
+            #     print('satble')
+
+            count = 0
         else:
-            print('satble')
+            count += 1
 
         last_level = current_level
 
